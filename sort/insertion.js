@@ -1,4 +1,5 @@
-import { randomUniform } from "d3-random";
+const d3 = require("d3-random")
+const randomUniform = d3.randomUniform
 
 function sort (array) {
   let leftArr = [array.shift()]
@@ -6,21 +7,22 @@ function sort (array) {
   function insertArray (leftArr, rightArr) {
     if (rightArr.length === 0) return leftArr
 
+    const len = leftArr.length
     let num = rightArr.shift()
-    let i = 0
-    for (; i < leftArr.length; i++) {
-      if (leftArr[i] > num) {
-        // 向右移动数组 在i的位置插入新值
-        for (let j = leftArr.length - 1; j >= i; j--) {
-          leftArr[j + 1] = leftArr[j]
-        }
-        leftArr[i] = num
+    let target = 0
+    // 定位目标位置
+    for (let i = len - 1; i >= 0; i--) {
+      if (leftArr[i] < num) {
+        target =  i + 1
         break
       }
     }
-
-    // 比当前left中任何值都大 直接插在末尾
-    if(i === leftArr.length) leftArr.push(num)
+    // 向右移动数组 
+    for (let j = len - 1; j >= target; j--) {
+      leftArr[j + 1] = leftArr[j]
+    }
+    // 在目标的位置插入新值
+    leftArr[target] = num
 
     return insertArray(leftArr, rightArr)
   }
