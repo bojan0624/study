@@ -1,9 +1,9 @@
 const d3 = require('d3-random')
 
-function sort (arr) {
+function selectionSort (arr) {
   function selectMin (arr, index) {
     if(index === arr.length - 1) return arr
-    
+    // 将 每轮最小的值 移动到当前轮次最前面
     let min = index
     for (let i = min; i < arr.length; i++) {
       if (arr[min] > arr[i]) {
@@ -22,6 +22,8 @@ function sort (arr) {
   return selectMin(arr, 0)
 }
 
+module.exports.selectionSort = selectionSort
+
 function createRadomArray (len) {
   let array = new Array(len)
   for (let index = 0; index < len; index++) {
@@ -31,8 +33,12 @@ function createRadomArray (len) {
 }
 
 function test () {
+  
   const array = createRadomArray(10)
-  console.log(sort(array))
+  console.log(array)
+  const start = new Date().getTime()
+  console.log(selectionSort(array))
+  console.log(new Date().getTime() - start)
 }
 
 test()
