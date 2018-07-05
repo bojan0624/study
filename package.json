@@ -5,7 +5,9 @@
   "license": "MIT",
   "dependencies": {
     "d3-random": "^1.1.0",
-    "lodash": "^4.17.5"
+    "events": "^3.0.0",
+    "lodash": "^4.17.5",
+    "rxjs": "^6.2.1"
   },
   "devDependencies": {
     "eslint": "^4.19.1"
