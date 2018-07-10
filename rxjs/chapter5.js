@@ -1,6 +1,29 @@
 import EventEmitter from 'events'
-import { concat, map, take, withLatestFrom, startWith } from "../node_modules/rxjs/operators";
-import { of, merge, timer, zip, never, combineLatest, range, race, forkJoin } from "../node_modules/rxjs";
+import {
+  concat,
+  map,
+  take,
+  withLatestFrom,
+  startWith,
+  concatAll,
+  mergeAll,
+  zipAll,
+  combineAll,
+  switchMap,
+  switchAll,
+  exhaust
+} from "../node_modules/rxjs/operators";
+import { of ,
+  merge,
+  timer,
+  zip,
+  never,
+  combineLatest,
+  range,
+  race,
+  forkJoin,
+  interval
+} from "../node_modules/rxjs";
 
 const subscribeParams = [
   x => console.log(x, Object.prototype.toString.call(x)),
@@ -12,8 +35,8 @@ const subscribeParams = [
  * concat 在当前上游数据流complete后，才会去订阅下一个上游数据流
  * 要求所有上游数据流必须可以complete
  */
-let concatSource1$ = of(1,2,3)
-let concatSource2$ = of(4,5,6)
+let concatSource1$ = of (1, 2, 3)
+let concatSource2$ = of (4, 5, 6)
 // concatSource1$.pipe(concat(concatSource2$)).subscribe(...subscribeParams)
 
 /**
@@ -67,6 +90,56 @@ let raceSource2$ = timer(500, 1000).pipe(map(x => x + 'B'), take(5))
 
 /** 
  * forkJoin等待所有上游complete后 将每个流最后的数据合并
-*/
-forkJoin(timer(0,200).pipe(take(3)), timer(1000, 200).pipe(take(2))).subscribe(...subscribeParams)
+ */
+// forkJoin(timer(0,200).pipe(take(3)), timer(1000, 200).pipe(take(2))).subscribe(...subscribeParams)
 
+
+/**
+ * HOO 高阶Observable 用来管理 o 的 o
+ */
+const ho$ = interval(5000).pipe(
+  take(2),
+  map(x =>
+    {
+      console.log(x)
+      return interval(500 * (3 - x)).pipe(
+        map(y =>
+          x + ':' + y),
+        take(2)
+      )  
+    }
+  ),
+  // concat(never())
+)
+/**
+ * concatAll 只有当前的o complete 才会去sub下一个o, 即使HOO已经产出了新的o 
+ * 只有在上游HOO和它产生的o 都 complete后 自身才能complete
+ */
+// ho$.pipe(concatAll()).subscribe(...subscribeParams)
+
+/**
+ * mergeAll 在上游HOO产生o后立即订阅，会立即将上游任意o推来的数据传递给下游
+ */
+// ho$.pipe(mergeAll()).subscribe(...subscribeParams)
+
+/**
+ * zipAll 只有在 上游HOO complete后才会开始产生数据， 因为在这之前不能确定有多少个上游o， 无法对齐合并
+ */
+// ho$.pipe(zipAll((a, b) => `${a}//${b}`)).subscribe(...subscribeParams)
+
+/**
+ * combineAll 必须上游HOO complete 才能产生数据,
+ */
+// ho$.pipe(combineAll()).subscribe(...subscribeParams)
+
+/**
+ * switch 的函数形式 switchAll 每当有最新的可订阅的o产生，退订当前的o，并订阅最新的o
+ * 上游HOO和当前订阅的o complete时， 自身complete
+ */
+// ho$.pipe(switchAll()).subscribe(...subscribeParams)
+
+/**
+ *  在当前o未complete前，新产生的o会被忽略，直到当前o complete, 才会开始接收新产生的o并订阅
+ *  上游HOO和当前订阅的o complete时， 自身complete
+ */
+ho$.pipe(exhaust()).subscribe(...subscribeParams)
